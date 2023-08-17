@@ -1,8 +1,10 @@
+USER=howardkhh
 docker run --gpus all \
-            -v /home/howardkhh/sdfstudio/data/:/home/user/sdfstudio/data/ \
-            -v /home/howardkhh/sdfstudio/outputs/:/home/user/sdfstudio/outputs \
-            -v /home/howardkhh/sdfstudio/exports/:/home/user/sdfstudio/exports/ \
-            -v /home/howardkhh/.cache/:/root/.cache/ \
+            -v /home/${USER}/sdfstudio/data/:/home/user/sdfstudio/data/ \
+            -v /home/${USER}/sdfstudio/outputs/:/home/user/sdfstudio/outputs \
+            -v /home/${USER}/sdfstudio/exports/:/home/user/sdfstudio/exports/ \
+            -v /home/${USER}/sdfstudio/renders/:/home/user/sdfstudio/renders/ \
+            -v /home/${USER}/.cache/:/root/.cache/ \
             -p 7007:7007 \
             --rm \
             -it \

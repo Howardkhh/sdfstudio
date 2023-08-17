@@ -1,13 +1,18 @@
 # Define base image.
 FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
 
+# Variables used at build time.
+## CUDA architectures, required by Colmap and tiny-cuda-nn.
+## NOTE: All commonly used GPU architectures are included and supported here. To speedup the image build process remove all architectures but the one of your explicit GPU. Find details here: https://developer.nvidia.com/cuda-gpus (8.6 translates to 86 in the line below) or in the docs.
+ARG CUDA_ARCHITECTURES=90;89;86;80;75;70;61;52;37
+
 # Set environment variables.
 ## Set non-interactive to prevent asking for user inputs blocking image creation.
 ENV DEBIAN_FRONTEND=noninteractive
 ## Set timezone as it is required by some packages.
 ENV TZ=Europe/Berlin
 ## CUDA architectures, required by tiny-cuda-nn.
-ENV TCNN_CUDA_ARCHITECTURES=61
+ENV TCNN_CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES}
 ## CUDA Home, required to find CUDA in some packages.
 ENV CUDA_HOME="/usr/local/cuda"
 
@@ -79,7 +84,8 @@ RUN git clone --branch 3.7 https://github.com/colmap/colmap.git --single-branch 
     cd colmap && \
     mkdir build && \
     cd build && \
-    cmake .. && \
+    cmake .. -DCUDA_ENABLED=ON \
+             -DCMAKE_CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES} && \
     make -j && \
     make install && \
     cd ../.. && \
