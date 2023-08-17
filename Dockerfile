@@ -1,5 +1,5 @@
 # Define base image.
-FROM nvidia/cudagl:11.3.1-devel
+FROM nvidia/cuda:11.3.1-devel-ubuntu20.04
 
 # Set environment variables.
 ## Set non-interactive to prevent asking for user inputs blocking image creation.
@@ -7,7 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ## Set timezone as it is required by some packages.
 ENV TZ=Europe/Berlin
 ## CUDA architectures, required by tiny-cuda-nn.
-ENV TCNN_CUDA_ARCHITECTURES=86
+ENV TCNN_CUDA_ARCHITECTURES=61
 ## CUDA Home, required to find CUDA in some packages.
 ENV CUDA_HOME="/usr/local/cuda"
 
@@ -16,6 +16,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
     cmake \
+    curl \
     ffmpeg \
     git \
     libatlas-base-dev \
@@ -24,8 +25,10 @@ RUN apt-get update && \
     libboost-program-options-dev \
     libboost-system-dev \
     libboost-test-dev \
+    libhdf5-dev \
     libcgal-dev \
     libeigen3-dev \
+    libflann-dev \
     libfreeimage-dev \
     libgflags-dev \
     libglew-dev \
@@ -33,13 +36,18 @@ RUN apt-get update && \
     libmetis-dev \
     libprotobuf-dev \
     libqt5opengl5-dev \
+    libsqlite3-dev \
     libsuitesparse-dev \
     nano \
     protobuf-compiler \
+    python-is-python3 \
     python3.8-dev \
     python3-pip \
     qtbase5-dev \
-    wget
+    sudo \
+    vim-tiny \
+    wget && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install GLOG (required by ceres).
 RUN git clone --branch v0.6.0 https://github.com/google/glog.git --single-branch && \
@@ -78,10 +86,12 @@ RUN git clone --branch 3.7 https://github.com/colmap/colmap.git --single-branch 
     rm -r colmap
     
 # Create non root user and setup environment.
-RUN useradd -m -d /home/user -u 1000 user
+# RUN groupadd -g 1002 vglusers
+# RUN useradd -m -d /home/user -g root -G sudo,vglusers -u 1000 user
 
 # Switch to new uer and workdir.
-USER 1000:1000
+# USER 1000
+RUN mkdir /home/user
 WORKDIR /home/user
 
 # Add local user binary folder to PATH variable.
@@ -96,18 +106,18 @@ RUN python3.8 -m pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torch
 RUN python3.8 -m pip install git+https://github.com/NVlabs/tiny-cuda-nn.git#subdirectory=bindings/torch
 
 # Copy nerfstudio folder and give ownership to user.
-ADD . /home/user/nerfstudio
-USER root
-RUN chown -R user:user /home/user/nerfstudio
-USER 1000:1000
+ADD . /home/user/sdfstudio
+# USER root
+# RUN chown -R user /home/root/nerfstudio
+# USER 1000:1000
 
 # Install nerfstudio dependencies.
-RUN cd nerfstudio && \
+RUN cd sdfstudio && \
     python3.8 -m pip install -e . && \
     cd ..
 
 # Change working directory
-WORKDIR /workspace
+WORKDIR /home/user/sdfstudio
 
 # Install nerfstudio cli auto completion and enter shell if no command was provided.
 CMD ns-install-cli --mode install && /bin/bash

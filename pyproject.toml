@@ -35,6 +35,7 @@ dependencies = [
     "protobuf==3.20.0",
     "pymeshlab==2022.2.post2",
     "pyngrok==5.1.0",
+    "pyqt5==5.15.9",
     "python-socketio==5.7.1",
     "requests",
     "rich==12.5.1",
