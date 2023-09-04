@@ -17,6 +17,7 @@ ENV TCNN_CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES}
 ENV CUDA_HOME="/usr/local/cuda"
 
 # Install required apt packages.
+RUN rm /etc/apt/sources.list.d/cuda.list
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     build-essential \
@@ -110,6 +111,12 @@ RUN python3.8 -m pip install --upgrade pip setuptools pathtools promise
 RUN python3.8 -m pip install torch==1.12.1+cu113 torchvision==0.13.1+cu113 torchaudio==0.12.1 --extra-index-url https://download.pytorch.org/whl/cu113
 # Install tynyCUDNN.
 RUN python3.8 -m pip install git+https://github.com/NVlabs/tiny-cuda-nn.git#subdirectory=bindings/torch
+# Insatll hloc
+RUN git clone --recursive https://github.com/cvg/Hierarchical-Localization/ && \
+    cd Hierarchical-Localization/ && \
+    python -m pip install . && \
+    cp -r third_party /usr/local/lib/python3.8/dist-packages/ && \
+    cd ..
 
 # Copy nerfstudio folder and give ownership to user.
 ADD . /home/user/sdfstudio

@@ -196,3 +196,7 @@ camera_paths/
 vis_results/
 W/
 *.ply
+
+Hierarchical-Localization
+exports
+tmp
