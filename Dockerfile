@@ -10,7 +10,7 @@ ARG CUDA_ARCHITECTURES=90;89;86;80;75;70;61;52;37
 ## Set non-interactive to prevent asking for user inputs blocking image creation.
 ENV DEBIAN_FRONTEND=noninteractive
 ## Set timezone as it is required by some packages.
-ENV TZ=Europe/Berlin
+ENV TZ=Asia/Taipei
 ## CUDA architectures, required by tiny-cuda-nn.
 ENV TCNN_CUDA_ARCHITECTURES=${CUDA_ARCHITECTURES}
 ## CUDA Home, required to find CUDA in some packages.
@@ -98,8 +98,8 @@ RUN git clone --branch 3.7 https://github.com/colmap/colmap.git --single-branch 
 
 # Switch to new uer and workdir.
 # USER 1000
-RUN mkdir /home/user
-WORKDIR /home/user
+# RUN mkdir /home/user
+# WORKDIR /home/user
 
 # Add local user binary folder to PATH variable.
 ENV PATH="${PATH}:/home/user/.local/bin"
@@ -119,18 +119,25 @@ RUN git clone --recursive https://github.com/cvg/Hierarchical-Localization/ && \
     cd ..
 
 # Copy nerfstudio folder and give ownership to user.
-ADD . /home/user/sdfstudio
-# USER root
-# RUN chown -R user /home/root/nerfstudio
-# USER 1000:1000
+ARG USER=howardkhh
+ARG USER_ID=1014
+ARG STUDENT_GROUP_ID=1001
+RUN groupadd -g $STUDENT_GROUP_ID student
+RUN useradd -u $USER_ID -g student -ms /bin/bash $USER
+RUN groupadd -g 1002 vglusers
+RUN usermod -aG vglusers $USER
+USER $USER
+ADD . /home/$USER/sdfstudio
+USER root
 
 # Install nerfstudio dependencies.
-RUN cd sdfstudio && \
+RUN cd /home/$USER/sdfstudio && \
     python3.8 -m pip install -e . && \
     cd ..
 
-# Change working directory
-WORKDIR /home/user/sdfstudio
+RUN chown -Rh $USER:student /home/$USER/sdfstudio
+USER $USER
+WORKDIR /home/$USER/sdfstudio
 
 # Install nerfstudio cli auto completion and enter shell if no command was provided.
 CMD ns-install-cli --mode install && /bin/bash
